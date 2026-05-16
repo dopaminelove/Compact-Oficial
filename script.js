@@ -24,28 +24,6 @@ if (navToggle && navLinks) {
   });
 }
 
-// Mobile nav styles
-const style = document.createElement('style');
-style.textContent = `
-  @media (max-width: 1023px) {
-    .nav-links {
-      position: fixed; top: 72px; left: 1rem; right: 1rem;
-      flex-direction: column; gap: 1rem;
-      background: hsl(260 25% 8% / 0.95); backdrop-filter: blur(16px);
-      border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;
-      transform: translateY(-10px); opacity: 0; pointer-events: none;
-      transition: all 0.3s ease;
-    }
-    .nav-links.mobile-open {
-      display: flex;
-      transform: translateY(0);
-      opacity: 1;
-      pointer-events: auto;
-    }
-  }
-`;
-document.head.appendChild(style);
-
 // ==== Scroll reveal ====
 const io = new IntersectionObserver((entries) => {
   entries.forEach(e => {
@@ -69,9 +47,12 @@ const sumVehicle = document.getElementById('sumVehicle');
 const sumFilm = document.getElementById('sumFilm');
 const sumDark = document.getElementById('sumDark');
 const darknessV = document.getElementById('darknessV');
+
+const nomeCarroInput = document.getElementById('nomecarro');
+const anoCarroInput = document.getElementById('anocarro');
 const whatsBtn = document.getElementById('whatsBtn');
 
-// pega estados iniciais
+// estado inicial
 const activeVehicle = vehicleOpts?.querySelector('.opt.active');
 const activeFilm = filmOpts?.querySelector('.opt.active');
 const activeDark = darkButtons?.querySelector('.dark-opt.active');
@@ -102,23 +83,27 @@ function update() {
   if (sumDark) sumDark.textContent = state.darkness + '%';
   if (darknessV) darknessV.textContent = state.darkness + '%';
 
-  const msg = `Olá! 👋
+  const nomeCarro = nomeCarroInput?.value.trim() || '';
+  const anoCarro = anoCarroInput?.value.trim() || '';
+
+  const msg = `Olá! 
 
 Quero um orçamento de insufilm:
 
-🚗 Veículo: ${state.vehicle}
-🎞 Película: ${state.film}
-🌑 Escurecimento: ${state.darkness}%
-🧽 Remoção: ${state.remove}
+ Veículo: ${state.vehicle}
+ Carro: ${nomeCarro} ${anoCarro ? '(' + anoCarro + ')' : ''}
+ Película: ${state.film}
+ Escurecimento: ${state.darkness}%
+ Remoção: ${state.remove}
 
-💰 Valor estimado: ${fmtBRL(price)}
+ Valor estimado: ${fmtBRL(price)}
 
 ${state.remove === 'Sim' ? 'Tenho película antiga. Posso enviar foto para avaliação da remoção?' : ''}
 
 Pode me atender?`;
 
   if (whatsBtn) {
-    whatsBtn.href = `https://wa.me/5511998262568?text=${encodeURIComponent(msg)}`;
+    whatsBtn.href = `https://wa.me/551191649-7132?text=${encodeURIComponent(msg)}`;
   }
 }
 
@@ -151,7 +136,7 @@ bindOptions(removeOpts, (btn) => {
   state.removePrice = parseFloat(btn.dataset.add);
 });
 
-// botões de escurecimento
+// escurecimento
 if (darkButtons) {
   darkButtons.querySelectorAll('.dark-opt').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -164,35 +149,32 @@ if (darkButtons) {
   });
 }
 
-// inicializa
-update();
+// 👉 VALIDAÇÃO (fora do update)
+if (whatsBtn) {
+  whatsBtn.addEventListener('click', (e) => {
+    const nomeCarro = nomeCarroInput?.value.trim();
+    const anoCarro = anoCarroInput?.value.trim();
 
-// ==== Contact form (seguro) ====
-const contactForm = document.getElementById('contactForm');
-
-if (contactForm) {
-  contactForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById('cName')?.value.trim();
-    const email = document.getElementById('cEmail')?.value.trim();
-    const msg = document.getElementById('cMsg')?.value.trim();
-
-    if (!name || !msg) {
-      alert('Preencha nome e mensagem.');
+    if (!nomeCarro || !anoCarro) {
+      e.preventDefault();
+      alert('Preencha o nome e o ano do carro antes de enviar.');
       return;
     }
 
-    const text = `Olá! Sou ${name}${email ? ' (' + email + ')' : ''}. ${msg}`;
-
-    window.open(
-      `https://wa.me/5511998262568?text=${encodeURIComponent(text)}`,
-      '_blank'
-    );
-
-    contactForm.reset();
+    // 👉 GARANTE que o valor mais recente vai pro Whats
+    update();
   });
 }
+
+// opcional: só números no ano
+if (anoCarroInput) {
+  anoCarroInput.addEventListener('input', () => {
+    anoCarroInput.value = anoCarroInput.value.replace(/\D/g, '');
+  });
+}
+
+// inicializa
+update();
 
 // ==== Year ====
 const yearEl = document.getElementById('year');
